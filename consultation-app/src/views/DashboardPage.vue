@@ -1,6 +1,6 @@
 <template>
     <div class="dashboard-container">
-      <h1>Dashboard {{ username }}</h1>
+      <h1>{{ username }} Dashboard</h1>
       <UserList />
     </div>
   </template>
@@ -8,12 +8,12 @@
   <script>
   import UserList from '@/components/UserList.vue';
   import apiClient from '@/services/api';
-
+  
   export default {
     name: 'DashboardPage',
-      components: {
-    UserList, // Додаємо компонент UserList
-  },
+    components: {
+      UserList, // Додаємо компонент UserList
+    },
     data() {
       return {
         username: '',

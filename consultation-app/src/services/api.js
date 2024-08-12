@@ -20,36 +20,35 @@ apiClient.interceptors.request.use(config => {
 
 // Middleware для обробки відповідей, включаючи автоматичне оновлення access токену
 apiClient.interceptors.response.use(
-  response => response,
-  async error => {
-    const originalRequest = error.config;
-
-    // Якщо отримуємо помилку 401 і це не запит на оновлення токену
-    if (error.response.status === 401 && !originalRequest._retry) {
-      originalRequest._retry = true;
-
-      // Отримуємо refresh токен
-      const refreshToken = localStorage.getItem('refreshToken');
-      if (refreshToken) {
-        try {
-          const { data } = await axios.post(`${API_URL}token/refresh/`, {
-            refresh: refreshToken
-          });
-
-          // Зберігаємо новий access токен
-          localStorage.setItem('accessToken', data.access);
-
-          // Оновлюємо заголовок Authorization і повторюємо оригінальний запит
-          originalRequest.headers['Authorization'] = `Bearer ${data.access}`;
-          return apiClient(originalRequest);
-        } catch (err) {
-          console.error('Refresh token failed', err);
-          // Тут можна додати логіку виходу з системи або очищення токенів
+    response => response,
+    async error => {
+      const originalRequest = error.config;
+  
+      if (error.response.status === 401 && !originalRequest._retry) {
+        originalRequest._retry = true;
+        const refreshToken = localStorage.getItem('refreshToken');
+  
+        if (refreshToken) {
+          try {
+            const { data } = await axios.post(`${API_URL}token/refresh/`, { refresh: refreshToken });
+            localStorage.setItem('accessToken', data.access);
+            originalRequest.headers['Authorization'] = `Bearer ${data.access}`;
+            return apiClient(originalRequest);
+          } catch (err) {
+            console.error('Refresh token failed', err);
+            localStorage.removeItem('accessToken');
+            localStorage.removeItem('refreshToken');
+            this.$router.push('/login');
+          }
+        } else {
+          localStorage.removeItem('accessToken');
+          localStorage.removeItem('refreshToken');
+          this.$router.push('/login');
         }
       }
+      return Promise.reject(error);
     }
-    return Promise.reject(error);
-  }
-);
+  );
+  
 
 export default apiClient;

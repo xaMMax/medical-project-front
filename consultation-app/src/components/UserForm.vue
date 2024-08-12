@@ -23,8 +23,6 @@
 </template>
 
 <script>
-import apiClient from '@/services/api';
-
 export default {
   props: {
     form: {
@@ -41,65 +39,20 @@ export default {
     }
   },
   data() {
-    return {
-      localForm: { ...this.form }  // створюємо локальну копію форми, щоб уникнути мутацій пропсів
-    };
-  },
+  return {
+    localForm: JSON.parse(JSON.stringify(this.form)) 
+  };
+  },  
   computed: {
     showPasswordField() {
       return this.showExtraFields;
     }
   },
   methods: {
-    toggleEdit() {
-      this.isEditing = true;
+    handleSubmit() {
+      console.log('Submitting form data:', this.localForm); 
+      this.$emit('submit', this.localForm);
     },
-    cancelEdit() {
-      this.isEditing = false;
-      this.users = { ...this.originalUsers };
-    },
-    async saveProfile() {
-      try {
-        const updatedUsers = { ...this.users };
-        delete updatedUsers.photo; 
-
-        const response = await apiClient.put('users/', updatedUsers, {
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        });
-
-        console.log('Profile updated successfully', response.data.first_name);
-        this.isEditing = false;
-        this.originalUsers = { ...this.users };
-      } catch (error) {
-        console.error('Failed to update profile', error);
-        console.error('Error response:', error.response);
-      }
-    },
-    triggerPhotoUpload() {
-      this.$refs.photoInput.click();
-    },
-    async onPhotoChange(event) {
-      const file = event.target.files[0];
-      if (file) {
-        const formData = new FormData();
-        formData.append('photo', file);
-        formData.append('email', this.users.email);  
-        formData.append('username', this.users.username);
-
-        try {
-          const response = await apiClient.put('users/', formData, {
-            headers: {
-              'Content-Type': 'multipart/form-data',
-            },
-          });
-          this.Users.photo = response.data.photo;
-        } catch (error) {
-          console.error('Failed to update photo', error);
-        }
-      }
-    }
   }
 };
 </script>

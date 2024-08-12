@@ -27,48 +27,54 @@ export default {
         email: '',
         password: '',
         confirm_password: '',
-        is_doctor: false,
-        phone: '',
-        address: '',
-        bio: '',
-        photo: null,
       },
       error: null,
+      isSubmitting: false, // Додаємо прапорець для запобігання повторних викликів
     };
   },
   methods: {
     async register(userForm) {
-      // Перевірка, чи паролі співпадають
+      if (this.isSubmitting) return; // Якщо вже йде відправка, виходимо
+      this.isSubmitting = true;
+
+      if (this.error) {
+        this.error = null; // Очищення попередньої помилки перед новим запитом
+      }
+
+      // Перевірка відповідності паролів
       if (userForm.password !== userForm.confirm_password) {
         this.error = 'Passwords do not match';
+        this.isSubmitting = false; // Знімаємо прапорець
         return;
       }
 
-      const formData = new FormData();
-      formData.append('username', userForm.username);
-      formData.append('email', userForm.email);
-      formData.append('password', userForm.password);
-      formData.append('is_doctor', userForm.is_doctor);
-      formData.append('phone', userForm.phone);
-      formData.append('address', userForm.address);
-      formData.append('bio', userForm.bio);
-      if (userForm.photo) {
-        formData.append('photo', userForm.photo);
-      }
+      // Підготовка даних для відправки
+      const payload = {
+        username: userForm.username,
+        email: userForm.email,
+        password: userForm.password,
+      };
+
+      console.log('Payload being sent:', payload); 
 
       try {
-        const response = await apiClient.post('register/', formData, {
+        const response = await apiClient.post('register/', payload, {
           headers: {
-            'Content-Type': 'multipart/form-data',
+            'Content-Type': 'application/json',
           },
         });
 
-        // Використання response для логів або іншої логіки
         console.log('Registration successful:', response.data);
-
-        this.$router.push('login/'); // Перенаправлення на сторінку логіну після успішної реєстрації
+        this.$router.push('login/'); 
       } catch (error) {
-        this.error = 'Registration failed. Please try again.';
+        if (error.response && error.response.data) {
+          console.log('Error details:', error.response.data); 
+          this.error = error.response.data;
+        } else {
+          this.error = 'Registration failed. Please try again.';
+        }
+      } finally {
+        this.isSubmitting = false; // Знімаємо прапорець після завершення
       }
     },
   }
