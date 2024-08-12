@@ -1,5 +1,5 @@
 const { defineConfig } = require('@vue/cli-service');
-const webpack = require('webpack');
+const webpack = require('webpack');  // Додаємо імпорт webpack
 
 module.exports = defineConfig({
   transpileDependencies: true,
@@ -11,6 +11,16 @@ module.exports = defineConfig({
     ]
   },
   publicPath: process.env.NODE_ENV === 'production'
-  ? '/medical-project-front/'
-  : '/'
+    ? '/medical-project-front/consultation-app/'
+    : '/',
+  devServer: {
+    proxy: {
+      '/api': {
+        target: 'https://xammax.pythonanywhere.com',  // Ваш бекенд сервер
+        changeOrigin: true,
+        secure: false, // Можливо, потрібно встановити true, якщо бекенд має SSL
+        pathRewrite: { '^/api': '/api' }, // Якщо ваші API запити мають префікс /api
+      }
+    }
+  }
 });
