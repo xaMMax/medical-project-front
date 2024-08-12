@@ -10,6 +10,11 @@ module.exports = defineConfig({
       })
     ]
   },
+  pwa: {
+    workboxOptions: {
+      exclude: [/_redirects/]
+    }
+  },
   publicPath: process.env.NODE_ENV === 'production'
     ? '/medical-project-front/consultation-app/'
     : '/',
